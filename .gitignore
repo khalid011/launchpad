@@ -1,0 +1,24 @@
+# Backend (Maven/Java)
+source/backend/target/
+source/backend/.idea/
+*.iml
+
+# Frontend (Node/Vite)
+source/frontend/node_modules/
+source/frontend/dist/
+source/frontend/.vite/
+
+# IDEs
+.idea/
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Env files (never commit secrets)
+.env
+.env.local

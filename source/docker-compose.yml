@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: launchpad-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: launchpad
+      POSTGRES_USER: launchpad
+      POSTGRES_PASSWORD: launchpad_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - launchpad_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  launchpad_postgres_data:
