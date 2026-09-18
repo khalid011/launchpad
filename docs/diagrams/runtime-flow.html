@@ -1,0 +1,476 @@
+<title>Launchpad Runtime Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ink: #16283F;
+    --paper: #F3F5F8;
+    --panel: #FFFFFF;
+    --line: #C7D0DD;
+    --line-soft: #DEE4EC;
+    --accent: #FF5A2B;
+    --accent-ink: #7A2A0E;
+    --accent-soft: #FFE4D6;
+    --muted: #5B6B80;
+    --font-display: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #E9EEF6;
+      --paper: #0D1622;
+      --panel: #14233A;
+      --line: #2A4060;
+      --line-soft: #1E3350;
+      --accent: #FF7A48;
+      --accent-ink: #FFD8C4;
+      --accent-soft: #3A2314;
+      --muted: #93A6BE;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #E9EEF6;
+    --paper: #0D1622;
+    --panel: #14233A;
+    --line: #2A4060;
+    --line-soft: #1E3350;
+    --accent: #FF7A48;
+    --accent-ink: #FFD8C4;
+    --accent-soft: #3A2314;
+    --muted: #93A6BE;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-display);
+    margin: 0;
+    padding-inline: max(16px, calc((100% - 900px) / 2));
+    padding-block: 56px 72px;
+  }
+
+  main {
+    max-width: 900px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+    font-weight: 700;
+  }
+
+  .dek {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 36px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.005em;
+  }
+
+  .section-intro {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 68ch;
+    margin: 0 0 22px;
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  .diagram-frame {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px clamp(12px, 3vw, 28px);
+    overflow-x: auto;
+  }
+
+  .diagram-frame svg {
+    display: block;
+    width: 100%;
+    max-width: 860px;
+    height: auto;
+    margin-inline: auto;
+    color: var(--ink);
+  }
+
+  figcaption {
+    margin-top: 12px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 68ch;
+  }
+
+  figcaption .fig-label {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .legend {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+
+  .legend-swatch {
+    width: 22px;
+    height: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .legend-swatch.dashed { border-top-style: dashed; }
+  .legend-swatch.accent { border-top-color: var(--accent); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  caption {
+    caption-side: top;
+    text-align: left;
+    margin-bottom: 12px;
+  }
+
+  thead th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+
+  tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  td.component {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+
+  td .sub {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  .table-wrap { overflow-x: auto; }
+
+  .callout {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  .callout strong { color: var(--accent-ink); }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 640px) {
+    body { padding-block: 40px 56px; }
+    main { gap: 40px; }
+    table, thead, tbody, tr, td { display: block; }
+    thead { display: none; }
+    tbody tr {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td {
+      border-bottom: none;
+      padding: 4px 0;
+    }
+    td.component { margin-top: 6px; }
+    td.component::before {
+      content: "Component";
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+  }
+</style>
+
+<main>
+
+  <header>
+    <p class="eyebrow">Launchpad &middot; system diagram</p>
+    <h1>How the pieces actually talk to each other</h1>
+    <p class="dek">Two pictures of the same app: what runs, on which port, and who's allowed to call whom &mdash; once while you're coding it, and once after it's shipped.</p>
+  </header>
+
+  <section aria-labelledby="dev-heading">
+    <h2 id="dev-heading">1. While you're developing</h2>
+    <p class="section-intro">Two independent server processes run on your machine at once. Your browser is the only thing that talks to both &mdash; nothing is relayed between them.</p>
+
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 860 400" role="img" aria-label="Development flow: the browser makes two separate connections, one to the Vite dev server on port 5173 which live-translates React source files, and one to the Spring Boot backend on port 8080 via a CORS-allowed fetch call; the backend's connection to PostgreSQL is drawn dashed because it exists but is not yet used.">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+            <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+            </marker>
+          </defs>
+
+          <!-- Browser box -->
+          <rect x="320" y="18" width="220" height="70" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="430" y="48" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="15" fill="currentColor">Your Browser</text>
+          <text x="430" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="11.5" fill="var(--muted)">one client, two connections</text>
+
+          <!-- arrows down to two servers -->
+          <path d="M370,88 C300,120 220,140 190,168" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)" />
+          <path d="M490,88 C560,120 640,140 670,168" fill="none" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow-accent)" />
+
+          <text x="255" y="122" font-family="var(--font-mono)" font-size="11.5" fill="var(--muted)">GET / , GET /src/*.tsx</text>
+          <text x="565" y="122" font-family="var(--font-mono)" font-size="11.5" fill="var(--accent-ink)">fetch(/api/hello)</text>
+
+          <!-- Vite box -->
+          <rect x="40" y="170" width="300" height="92" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="190" y="200" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="15" fill="currentColor">Vite Dev Server</text>
+          <text x="190" y="220" text-anchor="middle" font-family="var(--font-mono)" font-size="11.5" fill="var(--muted)">:5173</text>
+          <text x="190" y="240" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">translates .tsx &#8594; JS, live</text>
+          <text x="190" y="254" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">hot module reload</text>
+
+          <!-- Spring Boot box -->
+          <rect x="520" y="170" width="300" height="92" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="670" y="200" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="15" fill="currentColor">Spring Boot</text>
+          <text x="670" y="220" text-anchor="middle" font-family="var(--font-mono)" font-size="11.5" fill="var(--muted)">:8080 &middot; embedded Tomcat</text>
+          <text x="670" y="240" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--accent-ink)">CORS: allow localhost:5173</text>
+          <text x="670" y="254" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">GET /api/hello</text>
+
+          <!-- dashed line to Postgres -->
+          <path d="M670,262 L670,308" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arrow)" />
+          <text x="700" y="290" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">JDBC</text>
+
+          <rect x="520" y="310" width="300" height="70" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" />
+          <text x="670" y="338" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="14" fill="var(--muted)">PostgreSQL</text>
+          <text x="670" y="357" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">:5432 &middot; Docker &middot; not wired yet</text>
+        </svg>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch"></span>live request</span>
+        <span class="legend-item"><span class="legend-swatch accent"></span>needs CORS</span>
+        <span class="legend-item"><span class="legend-swatch dashed"></span>exists, not yet used</span>
+      </div>
+      <figcaption><span class="fig-label">Fig. 1</span> &mdash; Vite never proxies to Spring Boot. The browser fetches your app from Vite and your data from Spring Boot separately; because those are two different origins (5173 vs 8080), the backend has to explicitly allow the frontend's origin &mdash; that's the CORS config we wrote.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="prod-heading">
+    <h2 id="prod-heading">2. After it's shipped</h2>
+    <p class="section-intro">Vite's translation happens once, ahead of time, not live per request. The output is handed to nginx, which becomes the single door the browser talks to.</p>
+
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 860 520" role="img" aria-label="Production flow: source files are built once by Vite into static dist files, which are deployed into nginx; the browser then requests the site from nginx, which serves static files directly and reverse-proxies API calls down to Spring Boot, which talks to PostgreSQL.">
+          <defs>
+            <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <!-- build row -->
+          <text x="40" y="14" font-family="var(--font-mono)" font-size="10.5" letter-spacing="0.08em" fill="var(--muted)">BUILD &#8212; ONCE, AHEAD OF TIME</text>
+
+          <rect x="40" y="24" width="200" height="66" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="140" y="52" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="13" fill="currentColor">source .tsx / .ts</text>
+          <text x="140" y="70" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">your app code</text>
+
+          <path d="M240,57 L296,57" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow2)" />
+
+          <rect x="300" y="24" width="230" height="66" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="415" y="52" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="13" fill="currentColor">npm run build</text>
+          <text x="415" y="70" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--accent-ink)">Vite translates, once</text>
+
+          <path d="M530,57 L586,57" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow2)" />
+
+          <rect x="590" y="24" width="230" height="66" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="705" y="52" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="13" fill="currentColor">dist/</text>
+          <text x="705" y="70" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">plain html &middot; css &middot; js</text>
+
+          <!-- deploy arrow -->
+          <path d="M705,90 C705,130 560,140 455,166" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow2)" />
+          <text x="560" y="128" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">deploy</text>
+
+          <text x="40" y="150" font-family="var(--font-mono)" font-size="10.5" letter-spacing="0.08em" fill="var(--muted)">RUNTIME &#8212; EVERY REQUEST</text>
+
+          <!-- browser + nginx row -->
+          <rect x="40" y="168" width="220" height="76" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="150" y="200" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="15" fill="currentColor">Your Browser</text>
+          <text x="150" y="220" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">any visitor</text>
+
+          <path d="M260,206 L316,206" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow2)" />
+          <text x="272" y="196" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">GET /</text>
+
+          <rect x="320" y="168" width="230" height="76" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="435" y="198" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="15" fill="currentColor">nginx</text>
+          <text x="435" y="216" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">:80 / :443</text>
+          <text x="435" y="232" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--accent-ink)">static files + reverse proxy</text>
+
+          <!-- nginx -> spring boot -->
+          <path d="M435,244 L435,300" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow2)" />
+          <text x="450" y="276" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">/api/* &#8594; :8080</text>
+
+          <rect x="320" y="304" width="230" height="76" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="435" y="334" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="15" fill="currentColor">Spring Boot</text>
+          <text x="435" y="352" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">:8080 &middot; internal only</text>
+          <text x="435" y="368" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">no CORS needed &mdash; same origin</text>
+
+          <path d="M435,380 L435,436" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow2)" />
+          <text x="450" y="412" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">JDBC</text>
+
+          <rect x="320" y="440" width="230" height="66" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="435" y="468" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="14" fill="currentColor">PostgreSQL</text>
+          <text x="435" y="486" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">:5432 &middot; managed / self-hosted</text>
+        </svg>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch"></span>request path</span>
+        <span class="legend-item"><span class="legend-swatch accent"></span>the door everyone knocks on</span>
+      </div>
+      <figcaption><span class="fig-label">Fig. 2</span> &mdash; Vite is gone by the time anyone visits the site &mdash; it already did its translation once, into <code>dist/</code>. nginx becomes the single public entry point: it hands out the static files itself and forwards anything under <code>/api/*</code> to Spring Boot behind it. Same origin now, so the CORS rule from Fig. 1 isn't needed here.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="roles-heading">
+    <h2 id="roles-heading">3. Who does what</h2>
+    <p class="section-intro">The same five components, read across development and production.</p>
+
+    <div class="table-wrap">
+      <table>
+        <caption class="sr-only"></caption>
+        <thead>
+          <tr>
+            <th scope="col">Component</th>
+            <th scope="col">What it actually is</th>
+            <th scope="col">Role in development</th>
+            <th scope="col">Role in production</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="component">React source<span class="sub">.tsx / .ts</span></td>
+            <td>Your app's code &mdash; components, logic, JSX.</td>
+            <td>Watched and live-translated on every save.</td>
+            <td>Compiled once into <code>dist/</code>, then untouched.</td>
+          </tr>
+          <tr>
+            <td class="component">Vite<span class="sub">build tool</span></td>
+            <td>Translator: TS/JSX &#8594; plain JS the browser understands.</td>
+            <td>Runs a dev server on :5173, serves + hot-reloads live.</td>
+            <td>Runs once (<code>npm run build</code>), then exits.</td>
+          </tr>
+          <tr>
+            <td class="component">Spring Boot<span class="sub">app server</span></td>
+            <td>Embedded Tomcat running your REST API.</td>
+            <td>Runs on :8080, needs CORS to accept the :5173 origin.</td>
+            <td>Runs on :8080 internally, only nginx talks to it directly.</td>
+          </tr>
+          <tr>
+            <td class="component">PostgreSQL<span class="sub">database</span></td>
+            <td>Where the app's actual data lives.</td>
+            <td>Runs in Docker on :5432 &mdash; not wired up yet (Phase 1+).</td>
+            <td>Managed or self-hosted, reachable only by Spring Boot.</td>
+          </tr>
+          <tr>
+            <td class="component">nginx<span class="sub">web server</span></td>
+            <td>The public front door for real visitors.</td>
+            <td>Not running &mdash; no role yet, nothing to route.</td>
+            <td>Serves <code>dist/</code> directly, reverse-proxies <code>/api/*</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="callout">
+    <strong>The one thing that flips:</strong> in development the browser is a client of <em>two</em> separate origins (hence CORS). In production it's a client of <em>one</em> &mdash; nginx &mdash; which quietly does the routing that CORS used to do explicitly.
+  </div>
+
+  <footer>
+    Launchpad &middot; see docs/DECISIONS.md and docs/LEARNINGS.md for the reasoning behind each choice shown here
+  </footer>
+
+</main>

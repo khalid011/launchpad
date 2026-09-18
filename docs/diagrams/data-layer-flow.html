@@ -1,0 +1,410 @@
+<title>Data Layer Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ink: #16283F;
+    --paper: #F3F5F8;
+    --panel: #FFFFFF;
+    --line: #C7D0DD;
+    --line-soft: #DEE4EC;
+    --accent: #FF5A2B;
+    --accent-ink: #7A2A0E;
+    --accent-soft: #FFE4D6;
+    --muted: #5B6B80;
+    --font-display: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #E9EEF6;
+      --paper: #0D1622;
+      --panel: #14233A;
+      --line: #2A4060;
+      --line-soft: #1E3350;
+      --accent: #FF7A48;
+      --accent-ink: #FFD8C4;
+      --accent-soft: #3A2314;
+      --muted: #93A6BE;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #E9EEF6;
+    --paper: #0D1622;
+    --panel: #14233A;
+    --line: #2A4060;
+    --line-soft: #1E3350;
+    --accent: #FF7A48;
+    --accent-ink: #FFD8C4;
+    --accent-soft: #3A2314;
+    --muted: #93A6BE;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-display);
+    margin: 0;
+    padding-inline: max(16px, calc((100% - 900px) / 2));
+    padding-block: 56px 72px;
+  }
+
+  main {
+    max-width: 900px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+    font-weight: 700;
+  }
+
+  .dek {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 36px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.005em;
+  }
+
+  .section-intro {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 68ch;
+    margin: 0 0 22px;
+  }
+
+  figure { margin: 0; }
+
+  .diagram-frame {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px clamp(12px, 3vw, 28px);
+    overflow-x: auto;
+  }
+
+  .diagram-frame svg {
+    display: block;
+    width: 100%;
+    max-width: 860px;
+    height: auto;
+    margin-inline: auto;
+    color: var(--ink);
+  }
+
+  figcaption {
+    margin-top: 12px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 68ch;
+  }
+
+  figcaption .fig-label {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .legend {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .legend-swatch { width: 22px; height: 0; border-top: 2px solid var(--ink); }
+  .legend-swatch.dashed { border-top-style: dashed; }
+  .legend-swatch.accent { border-top-color: var(--accent); }
+
+  .callout {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  .callout strong { color: var(--accent-ink); }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 640px) {
+    body { padding-block: 40px 56px; }
+    main { gap: 40px; }
+  }
+</style>
+
+<main>
+
+  <header>
+    <p class="eyebrow">Launchpad &middot; system diagram</p>
+    <h1>How Java code becomes a row in Postgres</h1>
+    <p class="dek">Two companion pictures to Fig. 1/2 of the Runtime Flow diagram: the layers between your <code>@Entity</code> class and real SQL, and what actually happens to those layers the moment the backend starts up.</p>
+  </header>
+
+  <section aria-labelledby="stack-heading">
+    <h2 id="stack-heading">1. The layers between your code and SQL</h2>
+    <p class="section-intro">Four names that get blurred into one: JPA is a contract, Hibernate fulfills it, Spring Data JPA makes it convenient to call, and Spring Boot wires all three together automatically.</p>
+
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 860 570" role="img" aria-label="Your code calls a Spring Data JPA repository, which is built on Hibernate, which implements the JPA specification and generates SQL through the JDBC driver, through Docker's port mapping on 5432, to the PostgreSQL process running inside the container. Spring Boot auto-configures the Spring Data JPA, Hibernate, and JDBC wiring as one bracketed group; JPA itself is a specification Hibernate implements, not a step data flows through.">
+          <defs>
+            <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <!-- Your code -->
+          <rect x="290" y="16" width="280" height="70" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="430" y="44" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="14" fill="currentColor">Topic.java (@Entity)</text>
+          <text x="430" y="62" text-anchor="middle" font-family="var(--font-mono)" font-size="11.5" fill="var(--muted)">TopicRepository interface</text>
+          <text x="430" y="78" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">your code</text>
+
+          <path d="M430,86 L430,120" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow3)" />
+          <text x="446" y="107" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">calls</text>
+
+          <!-- Spring Data JPA -->
+          <rect x="270" y="124" width="320" height="64" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="430" y="150" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="14.5" fill="currentColor">Spring Data JPA</text>
+          <text x="430" y="168" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">turns a method name into a query</text>
+
+          <path d="M430,188 L430,222" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow3)" />
+          <text x="446" y="209" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">built on</text>
+
+          <!-- Hibernate -->
+          <rect x="270" y="226" width="320" height="64" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="430" y="252" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="14.5" fill="currentColor">Hibernate</text>
+          <text x="430" y="270" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--accent-ink)">generates and runs the real SQL</text>
+
+          <!-- JPA spec, side annotation -->
+          <rect x="650" y="234" width="170" height="48" rx="6" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" />
+          <text x="735" y="254" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">JPA</text>
+          <text x="735" y="269" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--muted)">the spec Hibernate implements</text>
+          <path d="M650,258 L594,258" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" />
+
+          <path d="M430,290 L430,324" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow3)" />
+          <text x="446" y="311" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">via</text>
+
+          <!-- JDBC -->
+          <rect x="270" y="328" width="320" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="430" y="352" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="13.5" fill="currentColor">JDBC driver</text>
+          <text x="430" y="369" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">org.postgresql:postgresql</text>
+
+          <path d="M430,388 L430,420" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow3)" />
+          <text x="450" y="408" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">TCP :5432</text>
+
+          <!-- Docker port mapping -->
+          <rect x="270" y="424" width="320" height="60" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="430" y="448" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="13" fill="currentColor">Docker port map</text>
+          <text x="430" y="465" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--accent-ink)">localhost:5432 &#8594; container :5432</text>
+
+          <path d="M430,484 L430,516" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow3)" />
+          <text x="450" y="504" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">forwarded</text>
+
+          <!-- Postgres -->
+          <rect x="310" y="520" width="240" height="34" rx="6" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="430" y="542" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="12.5" fill="currentColor">PostgreSQL (in container)</text>
+
+          <!-- Spring Boot bracket -->
+          <path d="M240,120 L220,120 L220,392 L240,392" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" />
+          <text x="150" y="256" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)" transform="rotate(-90 150 256)">auto-configured by Spring Boot</text>
+        </svg>
+      </div>
+      <figcaption><span class="fig-label">Fig. 1</span> &mdash; Data flows straight down: your code &#8594; Spring Data JPA &#8594; Hibernate &#8594; JDBC &#8594; Docker's port mapping &#8594; Postgres running inside the container (same hop Fig. 2 shows in detail). JPA sits off to the side because it never runs anything itself &mdash; it's the contract (the annotations, the interfaces) that Hibernate fulfills. Spring Boot's job is the dashed bracket: wiring Spring Data JPA, Hibernate, and the JDBC driver together automatically when you add one dependency.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="startup-heading">
+    <h2 id="startup-heading">2. What happens at backend startup</h2>
+    <p class="section-intro">One physical connection path (host process &#8594; JDBC &#8594; Docker's port mapping &#8594; the Postgres process inside the container), used for three different jobs, in a fixed order, every time the app starts.</p>
+
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 860 420" role="img" aria-label="The top row is the fixed path: the Spring Boot process on the host, through the JDBC driver, through Docker's port mapping on 5432, into the PostgreSQL process running inside the launchpad-postgres container, which stores data in a named volume. Below it, three sequential events at startup - Flyway migrates, then Hibernate validates, then the app serves requests - each shown as an arrow rising up into that same fixed path, not a separate route.">
+          <defs>
+            <marker id="arrow4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+            <marker id="arrow4-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+            </marker>
+          </defs>
+
+          <text x="20" y="24" font-family="var(--font-mono)" font-size="10.5" letter-spacing="0.08em" fill="var(--muted)">THE PATH &#8212; ALWAYS THE SAME</text>
+
+          <!-- boxes along the path -->
+          <rect x="20" y="34" width="150" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="95" y="60" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="12" fill="currentColor">Spring Boot</text>
+          <text x="95" y="76" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--muted)">process (host)</text>
+
+          <path d="M170,64 L206,64" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow4)" />
+
+          <rect x="210" y="34" width="130" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="275" y="60" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="12" fill="currentColor">JDBC</text>
+          <text x="275" y="76" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--muted)">driver</text>
+
+          <path d="M340,64 L376,64" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow4)" />
+
+          <rect x="380" y="34" width="160" height="60" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="460" y="57" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="11.5" fill="currentColor">Docker port map</text>
+          <text x="460" y="73" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--accent-ink)">localhost:5432 &#8594; 5432</text>
+
+          <path d="M540,64 L576,64" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow4)" />
+
+          <rect x="580" y="34" width="150" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="655" y="57" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="11.5" fill="currentColor">Postgres</text>
+          <text x="655" y="73" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--muted)">inside the container</text>
+
+          <path d="M655,94 L655,128" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow4)" />
+
+          <rect x="580" y="132" width="150" height="46" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" />
+          <text x="655" y="160" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">named volume</text>
+
+          <text x="20" y="216" font-family="var(--font-mono)" font-size="10.5" letter-spacing="0.08em" fill="var(--muted)">THREE TRIPS OVER THAT PATH, IN ORDER, AT STARTUP</text>
+
+          <!-- three sequential trips, each an arrow from its own step down into the SAME JDBC box -->
+          <circle cx="120" cy="252" r="13" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="120" y="257" text-anchor="middle" font-family="var(--font-mono)" font-weight="700" font-size="12" fill="var(--accent-ink)">1</text>
+          <text x="120" y="288" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="currentColor">Flyway migrates</text>
+          <text x="120" y="304" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--muted)">runs pending Vn files</text>
+          <path d="M133,252 C220,252 240,110 268,88" fill="none" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow4-accent)" />
+
+          <circle cx="430" cy="252" r="13" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="430" y="257" text-anchor="middle" font-family="var(--font-mono)" font-weight="700" font-size="12" fill="var(--accent-ink)">2</text>
+          <text x="430" y="288" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="currentColor">Hibernate validates</text>
+          <text x="430" y="304" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--muted)">entities vs. real schema</text>
+          <path d="M417,252 C330,252 300,110 276,88" fill="none" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow4-accent)" />
+
+          <circle cx="740" cy="252" r="13" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="740" y="257" text-anchor="middle" font-family="var(--font-mono)" font-weight="700" font-size="12" fill="currentColor">3</text>
+          <text x="740" y="288" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="currentColor">App serves requests</text>
+          <text x="740" y="304" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--muted)">every future query, ongoing</text>
+          <path d="M727,252 C620,252 580,110 550,88" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow4)" />
+
+          <rect x="30" y="330" width="800" height="70" rx="8" fill="none" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3" />
+          <text x="430" y="358" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">Same road, three cars &#8212; each numbered step is a separate trip up into the identical</text>
+          <text x="430" y="376" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">Spring Boot &#8594; JDBC &#8594; Docker port map &#8594; Postgres path shown above, not a second flow</text>
+        </svg>
+      </div>
+      <figcaption><span class="fig-label">Fig. 2</span> &mdash; Not two separate flows: the top and bottom are the same thing from two angles. The top row is <em>where</em> &mdash; the one physical path every connection travels. The three numbered steps below are <em>when</em> &mdash; three separate trips up into that identical path, strictly in order, every time the app starts: Flyway applies whatever migrations haven't run yet, Hibernate then checks the entity classes match what Flyway just built, and only after both pass does the app start answering real requests &mdash; which also travel this same path, indefinitely, afterward.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="bean-heading">
+    <h2 id="bean-heading">3. Why Flyway is guaranteed to run before Hibernate checks anything</h2>
+    <p class="section-intro">Not a timing coincidence — an enforced dependency between two Spring "beans." Traced against the real failure hit while building this project.</p>
+
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 860 460" role="img" aria-label="Spring's application context needs the entityManagerFactory bean, which requires the flywayInitializer bean to be built first. Building the flywayInitializer bean is itself the act of connecting to Postgres and running migrations. When that connection attempt fails, the failure cascades back up: flywayInitializer fails to build, so entityManagerFactory fails to build, so application startup fails.">
+          <defs>
+            <marker id="arrow5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+            <marker id="arrow5-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+            </marker>
+          </defs>
+
+          <!-- Spring Application Context -->
+          <rect x="270" y="16" width="320" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="430" y="42" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="14" fill="currentColor">Spring Application Context</text>
+          <text x="430" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">starts building beans at startup</text>
+
+          <path d="M430,76 L430,108" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow5)" />
+          <text x="450" y="96" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">needs</text>
+
+          <!-- entityManagerFactory bean -->
+          <rect x="270" y="112" width="320" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="430" y="138" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="13.5" fill="currentColor">entityManagerFactory bean</text>
+          <text x="430" y="156" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">what Hibernate/JPA needs</text>
+
+          <path d="M430,172 L430,204" fill="none" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow5-accent)" />
+          <text x="454" y="192" font-family="var(--font-mono)" font-size="10.5" fill="var(--accent-ink)">requires first</text>
+
+          <!-- flywayInitializer bean -->
+          <rect x="270" y="208" width="320" height="66" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="430" y="232" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="13.5" fill="currentColor">flywayInitializer bean</text>
+          <text x="430" y="249" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--accent-ink)">building THIS bean = connect + migrate</text>
+          <text x="430" y="264" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--muted)">not just an inert object</text>
+
+          <path d="M430,274 L430,306" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow5)" />
+          <text x="446" y="294" font-family="var(--font-mono)" font-size="10.5" fill="var(--muted)">attempts</text>
+
+          <!-- Postgres -->
+          <rect x="310" y="310" width="240" height="50" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5" />
+          <text x="430" y="332" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="12.5" fill="currentColor">PostgreSQL</text>
+          <text x="430" y="348" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--muted)">localhost:5432</text>
+
+          <!-- failure marker -->
+          <circle cx="430" cy="392" r="16" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="430" y="398" text-anchor="middle" font-family="var(--font-mono)" font-weight="700" font-size="15" fill="var(--accent-ink)">&#10005;</text>
+          <text x="430" y="424" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--accent-ink)">connection refused &#8212; Docker Desktop not running</text>
+
+          <!-- cascade back up -->
+          <path d="M550,392 C740,392 740,60 610,42" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arrow5-accent)" />
+          <rect x="614" y="14" width="200" height="62" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="714" y="38" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="11.5" fill="var(--accent-ink)">startup fails</text>
+          <text x="714" y="54" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--accent-ink)">failure cascades back</text>
+          <text x="714" y="67" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--accent-ink)">up the same chain</text>
+        </svg>
+      </div>
+      <figcaption><span class="fig-label">Fig. 3</span> &mdash; A "bean" is any object Spring builds and manages for you. <code>flywayInitializer</code> is unusual: <em>building</em> it is the real work &mdash; connecting to Postgres and running migrations, not just constructing an inert object. Spring Boot wires <code>entityManagerFactory</code> (what Hibernate needs) to require <code>flywayInitializer</code> first &mdash; that's the actual mechanism behind Fig. 2's "Flyway migrates, then Hibernate validates" ordering. When the connection attempt fails, the failure doesn't stay local: it cascades back up through every bean that depended on it, which is why a Postgres connection problem shows up as an error about <code>entityManagerFactory</code> several layers away.</figcaption>
+    </figure>
+  </section>
+
+  <footer>
+    Launchpad &middot; companion to the Runtime Flow diagram &middot; see docs/LEARNINGS.md for the full write-up
+  </footer>
+
+</main>

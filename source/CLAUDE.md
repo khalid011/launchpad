@@ -24,9 +24,19 @@ Your goal is: work as a smart assistant/co worker.
 
 01-client-brief.md is the Client requirement. You may read this occasionally if you need. This is the reference requirement.
 
+## Learnings log
+
+- Whenever a real learning moment happens in our conversation (a new concept explained, a mistake caught and corrected, a "why does this work" question answered), save it to docs/LEARNINGS.md proactively — don't wait for me to explicitly ask each time.
+
 ## Claude Code usage patterns
 
 I want to get better at using Claude Code itself, not just build the app. So beyond app work:
 - When you notice a task in our workflow that would genuinely benefit from a Claude Code feature I'm not using yet (a subagent, a skill, a background/parallel task, plan mode, etc.), tell me — explain what the feature is, why it fits *this* task specifically, and the trade-off against just doing it inline/manually. Don't force it in when a plain approach is just as good — say so when that's the case too.
 - Keep suggestions grounded in the actual task at hand, not generic Claude Code advertising.
 - Log these as learnings in docs/LEARNINGS.md when they come up, same as any other concept.
+
+## Career relevance
+
+- Maintain docs/CAREER_SKILLS.md alongside docs/LEARNINGS.md — re-read new learnings through a "is this actually worth mentioning in an interview or on a resume" lens, and add takeaways there.
+- Ground claims in real research (actual job postings, developer surveys, etc.), not just your own inference — verify before asserting something is "in-demand" or a "differentiator." Clearly label anything that's your own judgment rather than sourced, so I know how much weight to put on it.
+- When we start a new task or phase, give me a short summary (a few sentences) of how it could impact my career/job opportunities — what real-world skill it maps to, and how solid that claim actually is.
