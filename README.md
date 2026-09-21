@@ -69,11 +69,11 @@ Self-contained HTML pages under [`docs/diagrams/`](docs/diagrams/) — download 
 
 **Phase 0 — Groundwork: ✅ complete.** Frontend/backend/database scaffolding, verified end-to-end (React page fetching from a live Spring Boot endpoint, zero CORS errors).
 
-**Phase 1 — Products (read-only): 🔨 backend done, frontend in progress.**
+**Phase 1 — Products (read-only): ✅ complete.**
 - ✅ Database schema via Flyway (`products`, `topics`, `product_topics`, `product_screenshots`), seeded with realistic sample data.
 - ✅ Spring Data JPA entities, repositories, service, and REST controller (`GET /api/products`, `GET /api/products/{id}`).
 - ✅ Embargo rule enforced (unlaunched products return 404, including the "launches today" boundary case) and verified against live requests.
 - ✅ Two real bugs found via an independent plan review and live endpoint testing, diagnosed and fixed — see [`docs/DECISIONS.md`](docs/DECISIONS.md) for the write-ups (a JPA cartesian-product/pagination trap, and a Spring Boot 4.1 Flyway auto-configuration change).
-- ⬜ Frontend product list page — next up.
+- ✅ Frontend product list page (`ProductList`/`ProductCard`), verified end-to-end against the live backend — deliberately unstyled for now (see "Project priority" in [`docs/DECISIONS.md`](docs/DECISIONS.md)), since the current learning focus is backend systems, not frontend/UI.
 
 **Phases 2–14** (accounts/auth, submissions, voting, ranking, comments, notifications, search, anti-fraud, staff tools, deployment, etc.) — planned, not started. Full roadmap and rationale in [`docs/DECISIONS.md`](docs/DECISIONS.md).
